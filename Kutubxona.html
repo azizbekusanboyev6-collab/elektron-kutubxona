@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Elektron Kutubxona</title>
+<style>
+body{margin:0;font-family:Arial;background:linear-gradient(135deg,#1d2671,#c33764);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;width:560px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:25px;display:none}
+.card.active{display:block}
+h2{text-align:center}
+input,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #ccc}
+button{background:#1d2671;color:#fff;border:none;cursor:pointer}
+button:hover{background:#c33764}
+.table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #ddd;padding:8px;text-align:center;cursor:pointer}
+th{background:#f3f3f3}
+.link{text-align:center;color:#1d2671;cursor:pointer;margin-top:8px}
+.logout{background:#777;margin-top:10px}
+.info{background:#f7f7f7;padding:10px;border-radius:8px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="card active" id="loginCard">
+<h2>Kirish</h2>
+<input id="login" placeholder="Login">
+<input id="password" type="password" placeholder="Parol">
+<button onclick="loginUser()">Kirish</button>
+<div class="link" onclick="show('registerCard')">Ro‘yxatdan o‘tish</div>
+</div>
+
+<!-- REGISTER -->
+<div class="card" id="registerCard">
+<h2>Ro‘yxatdan o‘tish</h2>
+<input id="rFam" placeholder="Familiya">
+<input id="rIsm" placeholder="Ism">
+<input id="rPhone" placeholder="Telefon raqam">
+<input id="rLogin" placeholder="Login">
+<input id="rPass" type="password" placeholder="Parol">
+<button onclick="register()">Ro‘yxatdan o‘tdim</button>
+</div>
+
+<!-- ADMIN -->
+<div class="card" id="adminCard">
+<h2>Admin panel</h2>
+<table class="table">
+<thead><tr><th>Familiya</th><th>Ism</th></tr></thead>
+<tbody id="studentTable"></tbody>
+</table>
+
+<div id="studentInfo" style="display:none">
+<div class="info" id="infoBox"></div>
+<h3>Talabaning olgan kitoblari</h3>
+<table class="table">
+<thead><tr><th>Kitob</th><th>Berilgan</th><th>Qaytarish</th></tr></thead>
+<tbody id="adminBookList"></tbody>
+</table>
+
+<h3>Yangi kitob biriktirish</h3>
+<input id="bookName" placeholder="Kitob nomi">
+<input id="giveDate" type="date">
+<input id="returnDate" type="date">
+<button onclick="addBook()">Saqlash</button>
+</div>
+
+<button class="logout" onclick="logout()">Chiqish</button>
+</div>
+
+<!-- STUDENT -->
+<div class="card" id="studentCard">
+<h2>Talaba kabineti</h2>
+<table class="table">
+<thead><tr><th>Kitob</th><th>Berilgan</th><th>Qaytarish</th></tr></thead>
+<tbody id="studentBooks"></tbody>
+</table>
+<button class="logout" onclick="logout()">Chiqish</button>
+</div>
+
+<script>
+let users=JSON.parse(localStorage.getItem('users'))||[];
+let books=JSON.parse(localStorage.getItem('books'))||[];
+let current=null;
+
+function show(id){document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function register(){
+users.push({fam:rFam.value,ism:rIsm.value,phone:rPhone.value,login:rLogin.value,pass:rPass.value});
+localStorage.setItem('users',JSON.stringify(users));
+alert('Ro‘yxatdan o‘tildi');show('loginCard');}
+
+function loginUser(){
+if(login.value==='admin'&&password.value==='123456'){show('adminCard');loadAdmin();return}
+const u=users.find(x=>x.login===login.value&&x.pass===password.value);
+if(!u){alert('Login yoki parol xato');return}
+current=u;show('studentCard');loadStudent();}
+
+function loadAdmin(){
+const t=document.getElementById('studentTable');t.innerHTML='';
+users.sort((a,b)=>a.fam.localeCompare(b.fam)).forEach((u,i)=>{
+t.innerHTML+=`<tr onclick="selectStudent(${i})"><td>${u.fam}</td><td>${u.ism}</td></tr>`})}
+
+let selIndex=null;
+function selectStudent(i){selIndex=i;const u=users[i];
+infoBox.innerHTML=`<b>Familiya:</b> ${u.fam}<br><b>Ism:</b> ${u.ism}<br><b>Telefon:</b> ${u.phone}<br><b>Login:</b> ${u.login}`;
+studentInfo.style.display='block';}
+
+function addBook(){
+books.push({login:users[selIndex].login,name:bookName.value,give:giveDate.value,back:returnDate.value});
+localStorage.setItem('books',JSON.stringify(books));alert('Saqlangan');}
+
+function loadStudent(){
+const t=document.getElementById('studentBooks');t.innerHTML='';
+books.filter(b=>b.login===current.login).forEach(b=>{
+t.innerHTML+=`<tr><td>${b.name}</td><td>${b.give}</td><td>${b.back}</td></tr>`})}
+
+function logout(){current=null;show('loginCard')}
+</script>
+</body>
+</html>
